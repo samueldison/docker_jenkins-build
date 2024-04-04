@@ -1,0 +1,33 @@
+def imageName = 'colanta/static-website:1.0'
+def dockerfile = 'healet-html/Dockerfile'
+
+pipeline {
+    agent {
+        label 'docker-host'
+    }
+    stages {
+        stage('Pull Src Code') {
+            steps {
+                script {
+                    git branch: 'main', url: 'git@github.com:samueldison/docker_jenkins-build.git'
+                }
+            }
+        }
+        
+        stage('Docker Build') {
+            steps {
+                script {
+                    sh "docker build -t ${imageName} -f ${dockerfile} ."
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    sh "docker run --name webex -d -p 80:80 ${imageName}"
+                }
+            }
+        }
+    }
+} 
