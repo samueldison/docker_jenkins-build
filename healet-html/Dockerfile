@@ -8,7 +8,7 @@ WORKDIR /usr/share/nginx/html
 COPY . /usr/share/nginx/html
 
 # remove Dockerfile that was copied into the static web dir
-#RUN rm -rf D*
+RUN rm -rf D*
 
 # expose static web app on a specific port
 EXPOSE 80
