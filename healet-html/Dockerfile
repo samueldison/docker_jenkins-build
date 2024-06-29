@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 ARG VERSION=1.25
 
 # choose a light weight base image
@@ -14,6 +13,7 @@ COPY . ${WORK_DIR}
 
 # expose static web site on a specific port
 EXPOSE 80
+
 # Add a health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD curl -f http://localhost/ || exit 1
 
