@@ -1,17 +1,20 @@
-##choose a light weight base image
-FROM nginx:1.25-alpine-slim
+# syntax=docker/dockerfile:1
+ARG VERSION=1.25
+
+# choose a light weight base image
+FROM nginx:${VERSION}-alpine-slim
+
+ENV WORK_DIR=/usr/share/nginx/html
 
 # working directory
-WORKDIR /usr/share/nginx/html
+WORKDIR ${WORK_DIR}
 
-# copy web contents into static html dir
-COPY . /usr/share/nginx/html
+# copy all necessary web content with a single command
+COPY . ${WORK_DIR}
 
-# remove Dockerfile that was copied into the static web dir
-RUN rm -rf D*
-
-# expose static web app on a specific port
+# expose static web site on a specific port
 EXPOSE 80
+# Add a health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD curl -f http://localhost/ || exit 1
 
 CMD ["nginx","-g","daemon off;"]
-
