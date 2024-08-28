@@ -1,4 +1,3 @@
-/*
 pipeline {
     agent {
         label 'docker-host' // Ensure this label matches an available Jenkins agent
@@ -130,4 +129,4 @@ pipeline {
         }
     }
 }
-*/
+
