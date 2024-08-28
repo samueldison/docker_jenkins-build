@@ -1,35 +1,133 @@
 /*
-def imageName = 'colanta/static-website:1.0'
-def dockerfile = 'healet-html/Dockerfile'
-
 pipeline {
     agent {
-        label 'docker-host'
+        label 'docker-host' // Ensure this label matches an available Jenkins agent
     }
+
+    parameters {
+        string(name: 'BUILD_NUM_TO_KEEP', defaultValue: '-1', description: 'Keep all builds based on the number')
+        string(name: 'BUILD_DAYS_TO_KEEP', defaultValue: '7', description: 'Discard builds older than 7 days')
+        string(name: 'BUILD_ARTIFACT_NUM_TO_KEEP', defaultValue: '-1', description: 'Keep artifacts for all builds based on the number')
+        string(name: 'BUILD_ARTIFACT_DAYS_TO_KEEP', defaultValue: '2', description: 'Discard artifacts older than 2 days')
+    }
+
+    options {
+        buildDiscarder(logRotator(
+            numToKeepStr: "${params.BUILD_NUM_TO_KEEP}",
+            daysToKeepStr: "${params.BUILD_DAYS_TO_KEEP}",
+            artifactNumToKeepStr: "${params.BUILD_ARTIFACT_NUM_TO_KEEP}",
+            artifactDaysToKeepStr: "${params.BUILD_ARTIFACT_DAYS_TO_KEEP}"
+        ))
+        quietPeriod(20) // A delay between when a build is triggered and when it actually starts
+        timestamps() // Add timestamps to the console output for better log readability
+    }
+
+    environment {
+        GIT_URL = 'git@github.com:samueldison/docker_jenkins-build.git'
+        DOCKERFILE = 'healet-html/Dockerfile'
+        DOCKERHUB_CREDENTIALS = credentials('dockerId')
+        IMAGE_NAME = 'colanta/jewellryshop-website'
+        CONTAINER_NAME = 'webex'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        BRANCH_NAME = 'main'
+        GIT_CREDENTIALS = 'gitAuth'
+    }
+
     stages {
         stage('Pull Src Code') {
             steps {
                 script {
-                    git branch: 'main', url: 'git@github.com:samueldison/docker_jenkins-build.git'
-                }
-            }
-        }
-        
-        stage('Docker Build') {
-            steps {
-                script {
-                    sh "docker build -t ${imageName} -f ${dockerfile} ."
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "*/${BRANCH_NAME}"]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            [$class: 'PruneStaleBranch'],
+                            [$class: 'CleanBeforeCheckout'],
+                            [$class: 'CloneOption', depth: 1, noTags: false, reference: '', shallow: true]
+                        ],
+                        userRemoteConfigs: [[credentialsId: "${GIT_CREDENTIALS}", url: "${GIT_URL}"]]
+                    ])
                 }
             }
         }
 
-        stage('Deploy') {
+        stage('Check Dockerfile') {
             steps {
                 script {
-                    sh "docker run --name webex -d -p 80:80 ${imageName}"
+                    if (fileExists(env.DOCKERFILE)) {
+                        echo "Dockerfile exists: ${env.DOCKERFILE}"
+                    } else {
+                        error "Dockerfile does not exist: ${env.DOCKERFILE}"
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${env.IMAGE_NAME}:${env.IMAGE_TAG}", "-f ${env.DOCKERFILE} .")
+                }
+            }
+        }
+
+        stage('Run & Test Docker Image') {
+            steps {
+                script {
+                    try {
+                        sh "docker run --name ${env.CONTAINER_NAME} -d -p 80:80 ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                        // Adding a short delay to ensure the container is fully up
+                        sleep(time: 10, unit: 'SECONDS')
+                        // Retry up to 3 times if the curl command fails 
+                        retry(3) { 
+                            sh "curl -f http://localhost:80"
+                        }
+                        echo "Tests passed! Container ${env.CONTAINER_NAME} is serving content on port 80."
+                    } catch (Exception e) {
+                        error "Tests failed while trying to verify the Docker container. Error: ${e.message}"
+                    } finally {
+                        sh "docker stop ${env.CONTAINER_NAME}"
+                        sh "docker rm ${env.CONTAINER_NAME}"
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', env.DOCKERHUB_CREDENTIALS) {
+                        docker.image("${env.IMAGE_NAME}:${env.IMAGE_TAG}").push()
+                    }
+                }
+            }
+        }
+
+        stage('Cleanup Docker Images') {
+            steps {
+                script {
+                    sh "docker rmi -f ${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                    sh "docker image prune -f"
                 }
             }
         }
     }
-} 
+
+    post {
+        success {
+            mail to: 'samuelhaddison71m@gmail.com',
+                subject: "SUCCESS: Jenkins Build ${env.BUILD_NUMBER}",
+                body: "The Jenkins build ${env.BUILD_NUMBER} for job ${env.JOB_NAME} succeeded.\n\nCheck ${env.BUILD_URL} for more details."
+        }
+        failure {
+            mail to: 'samuelhaddison71m@gmail.com',
+                subject: "FAILURE: Jenkins Build ${env.BUILD_NUMBER}",
+                body: "The Jenkins build ${env.BUILD_NUMBER} for job ${env.JOB_NAME} failed.\n\nCheck ${env.BUILD_URL} for more details."
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
 */
