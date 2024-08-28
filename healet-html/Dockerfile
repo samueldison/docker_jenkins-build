@@ -9,7 +9,7 @@ ENV WORK_DIR=/usr/share/nginx/html
 WORKDIR ${WORK_DIR}
 
 # copy all necessary web content with a single command
-COPY healer-html/ ${WORK_DIR}
+COPY healet-html/ ${WORK_DIR}
 
 # expose static web site on a specific port
 EXPOSE 80
