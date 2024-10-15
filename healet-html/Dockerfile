@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 ARG VERSION=1.25
 
 # choose a light weight base image
