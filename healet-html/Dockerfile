@@ -2,21 +2,33 @@
 
 ARG VERSION=1.25
 
-# choose a light weight base image
-FROM nginx:${VERSION}-alpine-slim
+# Stage 1: Build stage with necessary dependencies
+FROM nginx:${VERSION}-alpine-slim AS build
+ 
+ENV WORK_DIR=/usr/share/nginx/html
+
+# Create a working directory in the image
+WORKDIR ${WORK_DIR}
+
+# Copy all web contents from host to image
+COPY . ${WORK_DIR}
+
+# Stage 2: Final stage with minimal footprint
+FROM nginx:${VERSION}-alpine-slim AS final
 
 ENV WORK_DIR=/usr/share/nginx/html
 
-# working directory
-WORKDIR ${WORK_DIR}
+# Copy built artifacts from the build stage to the final stage
+COPY --from=build ${WORK_DIR} ${WORK_DIR}
 
-# copy all necessary web content with a single command
-COPY healet-html/ ${WORK_DIR}
+# Install curl for health check in final stage
+RUN apk add --no-cache curl
 
-# expose static web site on a specific port
+# Expose static web app on port 80
 EXPOSE 80
 
-# Add a health check
+# Add a health check to monitor the app
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD curl -f http://localhost/index.html || exit 1
 
-CMD ["nginx","-g","daemon off;"]
+# Run Nginx in the foreground
+CMD ["nginx", "-g", "daemon off;"]
