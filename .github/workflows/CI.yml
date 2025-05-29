@@ -93,6 +93,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: colanta/jewellryshop-website:${{ github.sha }}
+          tags: colanta/jewellryshop-website:${{ github.sha }} healet-html/Dockerfile .
 
 
