@@ -98,4 +98,4 @@ jobs:
         context: ./healet-html
         file: ./healet-html/Dockerfile
         push: true
-        tags: colanta/jewellryshop-website:${{ github.sha }}
+        tags: colanta06/jewellryshop-website:${{ github.sha }}
