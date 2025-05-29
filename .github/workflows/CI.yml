@@ -93,5 +93,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: colanta/jewellryshop-website:$(git rev-parse --short HEAD)
+          tags: colanta/jewellryshop-website:${{ github.sha }}
+
 
