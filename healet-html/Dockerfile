@@ -13,6 +13,12 @@ WORKDIR ${WORK_DIR}
 # Copy all web contents from host to image
 COPY . ${WORK_DIR}
 
+# Set a non-root user for security
+RUN addgroup -S spring && adduser -S spring -G spring
+
+# Switch to the non-root user
+USER spring:spring
+
 # Stage 2: Final stage with minimal footprint
 FROM nginx:${VERSION}-alpine-slim AS final
 
