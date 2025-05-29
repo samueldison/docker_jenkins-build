@@ -78,7 +78,7 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-  docker_login:
+  docker_build_push:
     needs: install_docker_buildx
     runs-on: ubuntu-latest
     steps:
@@ -93,7 +93,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./healet-html
-          file: ./healet-html/Dockerfile 
+          file: healet-html/Dockerfile 
           push: true
           tags: colanta/jewellryshop-website:${{ github.sha }}
 
