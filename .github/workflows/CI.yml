@@ -92,7 +92,9 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v6
         with:
+          context: ./healet-html
+          file: ./healet-html/Dockerfile 
           push: true
-          tags: colanta/jewellryshop-website:${{ github.sha }} healet-html/Dockerfile .
+          tags: colanta/jewellryshop-website:${{ github.sha }}
 
 
