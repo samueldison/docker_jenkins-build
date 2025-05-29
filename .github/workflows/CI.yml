@@ -62,7 +62,7 @@ jobs:
               exit 1
           fi
 
-          echo "✅ Dockerfile defines a secure non-root user: $USER_VALUE"
+          echo " Dockerfile defines a secure non-root user: $USER_VALUE"
 
   install_docker_buildx:
     needs: dockerfile-security-check
@@ -91,6 +91,11 @@ jobs:
       with:
         username: ${{ vars.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - 
+      name: Set short SHA
+      id: vars
+      run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
     - 
       name: Build and push Docker image
       uses: docker/build-push-action@v6
@@ -98,4 +103,4 @@ jobs:
         context: ./healet-html
         file: ./healet-html/Dockerfile
         push: true
-        tags: colanta06/jewellryshop-website:${{ github.sha }}
+        tags: colanta06/jewellryshop-website:${{ env.SHORT_SHA }}
