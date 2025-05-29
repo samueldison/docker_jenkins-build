@@ -13,7 +13,7 @@ jobs:
 
       - name: Check Dockerfile for secure USER usage
         run: |
-          DOCKERFILE="Dockerfile"
+          DOCKERFILE="healet-html/Dockerfile"
           if [ ! -f "$DOCKERFILE" ]; then
             echo "::error ::Dockerfile not found at path $DOCKERFILE"
             exit 1
