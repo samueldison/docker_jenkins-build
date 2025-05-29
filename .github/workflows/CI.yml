@@ -5,7 +5,29 @@ on:
     branches: ["main"]
 
 jobs:
+  git_leaks_scan:
+    name: GitLeaks Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install GitLeaks
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_linux_x64.tar.gz | tar -xz
+          sudo mv gitleaks /usr/local/bin
+
+      - name: Run GitLeaks
+        run: |
+          gitleaks detect --source . --report-format sarif --report-path gitleaks.sarif
+
+      - name: Upload GitLeaks SARIF Report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
+
   dockerfile-security-check:
+    name: Dockerfile Security Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -15,26 +37,25 @@ jobs:
         run: |
           DOCKERFILE="healet-html/Dockerfile"
           if [ ! -f "$DOCKERFILE" ]; then
-            echo "::error ::Dockerfile not found at path $DOCKERFILE"
-            exit 1
+              echo "::error ::Dockerfile not found at path $DOCKERFILE"
+              exit 1
           fi
 
           if grep -q '^FROM scratch' "$DOCKERFILE"; then
-            echo "::error ::Avoid using FROM scratch unless absolutely necessary"
-            exit 1
+              echo "::error ::Avoid using FROM scratch unless absolutely necessary"
+              exit 1
           fi
 
           if ! grep -q '^USER ' "$DOCKERFILE"; then
-            echo "::error ::Dockerfile does not define a USER — container will run as root"
-            exit 1
+              echo "::error ::Dockerfile does not define a USER — container will run as root"
+              exit 1
           fi
 
           USER_LINE=$(grep '^USER ' "$DOCKERFILE" | tail -n1)
           USER_VALUE=$(echo "$USER_LINE" | awk '{print $2}')
           if [ "$USER_VALUE" = "root" ]; then
-            echo "::error ::Dockerfile sets USER to root — define a non-root user"
-            exit 1
+              echo "::error ::Dockerfile sets USER to root — define a non-root user"
+              exit 1
           fi
 
           echo "✅ Dockerfile defines a secure non-root user: $USER_VALUE"
-
