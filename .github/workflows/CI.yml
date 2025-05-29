@@ -30,6 +30,7 @@ jobs:
           sarif_file: gitleaks.sarif
 
   dockerfile-security-check:
+    needs: git_leaks_scan
     name: Dockerfile Security Check
     runs-on: ubuntu-latest
     steps:
