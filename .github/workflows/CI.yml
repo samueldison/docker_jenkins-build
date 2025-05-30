@@ -104,3 +104,6 @@ jobs:
         file: ./healet-html/Dockerfile
         push: true
         tags: colanta06/jewellryshop-website:${{ env.SHORT_SHA }}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache
+ 
