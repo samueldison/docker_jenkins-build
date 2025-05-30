@@ -11,7 +11,7 @@ permissions:
 jobs:
   git_leaks_scan:
     name: GitLeaks Scan
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
   dockerfile-security-check:
     needs: git_leaks_scan
     name: Dockerfile Security Check
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,7 +66,7 @@ jobs:
 
   install_docker_buildx:
     needs: dockerfile-security-check
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       -
         name: Checkout
@@ -80,7 +80,7 @@ jobs:
 
   docker_actions:
     needs: install_docker_buildx
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - 
       name: Checkout code
