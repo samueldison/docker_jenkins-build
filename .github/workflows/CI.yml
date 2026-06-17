@@ -73,7 +73,7 @@ jobs:
     - 
       name: Set short SHA
       id: vars
-      run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+      run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
     - 
       name: Build and push Docker image
       uses: docker/build-push-action@v6
@@ -81,5 +81,5 @@ jobs:
         context: ./healet-html
         file: ./healet-html/Dockerfile
         push: true
-        tags: colanta06/jewellryshop-website:${{ env.SHORT_SHA }}
+        tags: colanta06/jewellryshop-website:${{ steps.vars.outputs.SHORT_SHA }}
  

@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Smoke Test Script
-# Author: Samuel Haddison
-
 set -euo pipefail
 
 DOCKERFILE="healet-html/Dockerfile"
